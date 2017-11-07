@@ -768,7 +768,9 @@ mono_thread_detach_internal (MonoInternalThread *thread)
 	* runtime but not identified as runtime threads needs to make sure thread detach calls won't
 	* race with runtime shutdown.
 	*/
+#ifdef HOST_WIN32
 	mono_threads_add_joinable_runtime_thread (thread->thread_info);
+#endif
 
 	/*
 	 * thread->synch_cs can be NULL if this was called after
@@ -4756,8 +4758,7 @@ self_interrupt_thread (void *_unused)
 
 	info = mono_thread_info_current ();
 
-	/* We must use _with_context since we didn't trampoline into the runtime */
-	mono_raise_exception_with_context_deprecated (exc, &info->thread_saved_state [ASYNC_SUSPEND_STATE_INDEX].ctx); /* FIXME using thread_saved_state [ASYNC_SUSPEND_STATE_INDEX] can race with another suspend coming in. */
+	mono_raise_exception_with_context (exc, &info->thread_saved_state [ASYNC_SUSPEND_STATE_INDEX].ctx); /* FIXME using thread_saved_state [ASYNC_SUSPEND_STATE_INDEX] can race with another suspend coming in. */
 }
 
 static gboolean
